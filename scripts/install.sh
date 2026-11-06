@@ -38,9 +38,17 @@ if command -v gsettings >/dev/null; then
 fi
 
 say "(Re)starting the daemon"
-pkill -x claude-usage-indicator 2>/dev/null || true
-sleep 0.5
+# Match the full command line (process names are truncated to 15 chars, so
+# `pkill -x` cannot match), anchored so no other shell command is hit.
+pkill -f '^(/[^ ]*/|\./)?claude-usage-indicator( |$)' 2>/dev/null || true
+sleep 0.7
 setsid nohup "$BIN_DIR/claude-usage-indicator" >/dev/null 2>&1 &
+sleep 1
+if pgrep -f '^(/[^ ]*/|\./)?claude-usage-indicator( |$)' >/dev/null; then
+  echo "daemon running"
+else
+  echo "warning: daemon did not stay up; run $BIN_DIR/claude-usage-indicator to see why" >&2
+fi
 
 if command -v gnome-extensions >/dev/null && gnome-extensions info "$UUID" >/dev/null 2>&1; then
   say "Reloading the extension"

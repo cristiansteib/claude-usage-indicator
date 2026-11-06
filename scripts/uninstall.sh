@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 UUID="claude-usage@local"
-pkill -x claude-usage-indicator 2>/dev/null || true
+pkill -f '^(/[^ ]*/|\./)?claude-usage-indicator( |$)' 2>/dev/null || true
 command -v gnome-extensions >/dev/null && gnome-extensions disable "$UUID" 2>/dev/null || true
 rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/gnome-shell/extensions/$UUID"
 rm -f "${XDG_BIN_HOME:-$HOME/.local/bin}/claude-usage-indicator" \
