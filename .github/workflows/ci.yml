@@ -1,15 +1,58 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: actions/setup-go@v5
         with: { go-version-file: go.mod }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
       - run: go vet ./...
       - run: go test ./...
-      - name: Syntax-check the extension
+      - run: npm ci --no-audit --no-fund
+      - name: Release policy tests
+        run: node --test test/release-rules.test.mjs
+      - name: Syntax-check the extension and scripts
         run: |
           for f in extension/claude-usage@local/*.js; do cp "$f" /tmp/x.mjs && node --check /tmp/x.mjs; done
-      - run: bash -n scripts/install.sh && bash -n scripts/uninstall.sh
+          bash -n scripts/install.sh && bash -n scripts/uninstall.sh && bash -n scripts/check-commit-msg.sh
+      - name: Commit policy (PR commits / pushed commits)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            range="${{ github.sha }}^!"
+          else
+            range="${{ github.event.before }}..${{ github.sha }}"
+          fi
+          ./scripts/check-commit-msg.sh --range "$range"
+
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: Cristian Steib
+          GIT_AUTHOR_EMAIL: cristiansteib@gmail.com
+          GIT_COMMITTER_NAME: Cristian Steib
+          GIT_COMMITTER_EMAIL: cristiansteib@gmail.com
+        run: npx semantic-release

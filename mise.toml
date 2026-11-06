@@ -1,16 +1,17 @@
 # https://mise.jdx.dev — `mise run <task>`
 [tools]
 go = "1.27"
+node = "24"
 
 [tasks.build]
 description = "Build the daemon into ./bin"
 sources = ["*.go", "go.mod", "go.sum"]
 outputs = ["bin/claude-usage-indicator"]
-run = "go build -trimpath -ldflags='-s -w' -o bin/claude-usage-indicator ."
+run = "go build -trimpath -ldflags=\"-s -w -X main.version=$(git describe --tags --always --dirty 2>/dev/null || echo dev)\" -o bin/claude-usage-indicator ."
 
 [tasks.test]
 description = "Vet + unit tests"
-run = ["go vet ./...", "go test ./..."]
+run = ["go vet ./...", "go test ./...", "mise run test:release"]
 
 [tasks.install]
 description = "Build, install the daemon + GNOME extension, enable autostart"
@@ -34,3 +35,20 @@ run = "./bin/claude-usage-indicator -show"
 [tasks.previews]
 description = "Regenerate the README images (needs ImageMagick)"
 run = "go run ./tools/previews docs"
+
+[tasks.hooks]
+description = "Enable the commit-message policy hook for this clone"
+run = "git config core.hooksPath .githooks && echo 'commit-msg hook enabled'"
+
+[tasks."lint:commits"]
+description = "Check commit messages against the policy (default: since origin/main)"
+usage = 'arg "[range]" default="origin/main..HEAD"'
+run = "./scripts/check-commit-msg.sh --range ${usage_range}"
+
+[tasks."release:dry"]
+description = "Show what semantic-release would publish (no changes)"
+run = ["npm ci --no-audit --no-fund", "npx semantic-release --dry-run --no-ci"]
+
+[tasks."test:release"]
+description = "Pin the release policy (fix by default, minor/major only for contract)"
+run = "[ -d node_modules ] || npm ci --no-audit --no-fund; node --test test/release-rules.test.mjs"

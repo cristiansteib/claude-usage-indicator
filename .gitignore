@@ -2,3 +2,4 @@ bin/
 claude-usage-indicator
 *.png.tmp
 .DS_Store
+node_modules/

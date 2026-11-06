@@ -12,9 +12,17 @@ import (
 	"time"
 )
 
+// version is set at build time: -ldflags "-X main.version=..."
+var version = "dev"
+
 func main() {
+	ver := flag.Bool("version", false, "print the version and exit")
 	show := flag.Bool("show", false, "print the cached state and exit (no network)")
 	flag.Parse()
+	if *ver {
+		fmt.Println(version)
+		return
+	}
 
 	svc := newService()
 	if *show {

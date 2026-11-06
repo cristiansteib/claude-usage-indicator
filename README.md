@@ -46,6 +46,8 @@ GNOME only discovers newly installed extensions at login, so **log out and back 
 | `mise run status` | print cached usage / ring / forecast (no network) |
 | `mise run test` | `go vet` + unit tests |
 | `mise run previews` | regenerate the images above (needs ImageMagick) |
+| `mise run hooks` | enable the commit-message policy hook |
+| `mise run release:dry` | preview the next semantic-release |
 | `mise run uninstall` | remove everything |
 
 ## How it works
@@ -60,6 +62,17 @@ GNOME only discovers newly installed extensions at login, so **log out and back 
 - **Gentle on the API.** Result cached in `~/.cache/claude-usage-indicator/state.json`; one automatic request per 10 min; 2 min cooldown on manual refresh; exponential backoff (5 → 60 min, persisted) after errors such as HTTP 429. A restart or login never fires a request while the cache is fresh.
 - **Light at login.** Autostart is delayed 20 s, the extension reads its file asynchronously at low priority, the daemon idles at ~10 MB and ~0 % CPU.
 - **Forecast** (probabilistic): the extra session-% still to be burnt is modelled as a normal variable from this session's measured burn rate and its variance; it is converted to weekly-% with a ratio learned from samples, and the chance of ending above today's budget is read off the distribution. It needs a little usage data before it shows numbers.
+
+## Contributing & releases
+
+Releases are automated with [semantic-release](https://semantic-release.gitbook.io) and are intentionally **boring**: almost every change is a `fix:` (patch). Minor/major releases are reserved for **contract** changes (the published JSON, the D-Bus API, CLI flags, install layout) via `feat(contract):` / `<type>(contract)!:`. A plain `feat:` is rejected.
+
+```sh
+mise run hooks        # enable the commit-msg check in your clone
+mise run release:dry  # preview the next release
+```
+
+Details for humans and AI agents are in [AGENTS.md](AGENTS.md).
 
 ## Caveats
 
