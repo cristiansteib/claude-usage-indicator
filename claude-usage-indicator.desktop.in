@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Claude usage indicator
+Comment=Claude usage bars next to the clock (daemon)
+Exec=@BIN@
+Terminal=false
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=20

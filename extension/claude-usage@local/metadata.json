@@ -1,0 +1,7 @@
+{
+  "uuid": "claude-usage@local",
+  "name": "Claude usage bars",
+  "description": "Two stacked bars next to the clock showing Claude session and weekly usage. Data comes from claude-usage-indicator.",
+  "shell-version": ["50"],
+  "version": 1
+}

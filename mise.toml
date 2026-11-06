@@ -1,0 +1,36 @@
+# https://mise.jdx.dev — `mise run <task>`
+[tools]
+go = "1.27"
+
+[tasks.build]
+description = "Build the daemon into ./bin"
+sources = ["*.go", "go.mod", "go.sum"]
+outputs = ["bin/claude-usage-indicator"]
+run = "go build -trimpath -ldflags='-s -w' -o bin/claude-usage-indicator ."
+
+[tasks.test]
+description = "Vet + unit tests"
+run = ["go vet ./...", "go test ./..."]
+
+[tasks.install]
+description = "Build, install the daemon + GNOME extension, enable autostart"
+depends = ["build"]
+run = "./scripts/install.sh"
+
+[tasks.uninstall]
+description = "Remove everything install put on this machine"
+run = "./scripts/uninstall.sh"
+
+[tasks.reload]
+description = "Re-install and hot-reload the extension (no logout needed after the first login)"
+depends = ["build"]
+run = "./scripts/install.sh --reload"
+
+[tasks.status]
+description = "Show cached usage, ring and forecast (no network)"
+depends = ["build"]
+run = "./bin/claude-usage-indicator -show"
+
+[tasks.previews]
+description = "Regenerate the README images (needs ImageMagick)"
+run = "go run ./tools/previews docs"
