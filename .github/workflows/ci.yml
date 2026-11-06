@@ -4,6 +4,10 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: everything is read-only unless a job asks for more.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

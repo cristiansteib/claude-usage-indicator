@@ -72,6 +72,16 @@ so even if the check were bypassed the release stays small.
 Do not edit `CHANGELOG.md` or tags by hand; the release job does it.
 Git identity for this repo: `cristiansteib@gmail.com`.
 
+## CI security
+
+- Workflows run on **GitHub-hosted** runners (`ubuntu-latest`) only. **Never use
+  self-hosted runners on this public repo** (a fork PR could run code on that machine).
+- The workflow token is read-only by default; only the `release` job (push to `main`
+  only, never on PRs) gets `contents: write`. There are no repo secrets; keep it that way.
+- Allowed actions are limited to GitHub-owned ones (`actions/*`), and all outside
+  contributors need approval before workflows run. Actions are referenced by tag
+  (`@v4`) on purpose; do not switch them to SHAs without being asked.
+
 ## Gotchas learned the hard way
 
 - **GNOME caches extension modules until login.** `disable`/`enable` does *not* reload
